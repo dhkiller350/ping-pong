@@ -101,6 +101,13 @@ class RhythmGame {
                 this.pauseAudio();
             });
 
+            // Background mode selector
+            document.getElementById('backgroundMode').addEventListener('change', (e) => {
+                this.backgroundType = e.target.value;
+                this.settings.backgroundType = e.target.value;
+                this.saveSettings();
+            });
+
             // Keyboard controls for hitting notes
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' || e.code === 'Enter') {
@@ -224,9 +231,10 @@ class RhythmGame {
     // Generate demo notes when audio fails to load
     generateDemoNotes() {
         this.notes = [];
-        for (let i = 0; i < 20; i++) {
+        // Generate notes with shorter intervals for better demo experience
+        for (let i = 0; i < 30; i++) {
             this.notes.push({
-                time: i * 2,
+                time: i * 1.5, // Every 1.5 seconds instead of 2
                 lane: Math.floor(Math.random() * 4),
                 hit: false,
                 y: -50,
@@ -524,8 +532,10 @@ class RhythmGame {
 
     // Optimized note rendering with cached glow effects
     renderNotes() {
+        const currentTime = this.getCurrentTime();
+        
         this.notes.forEach(note => {
-            if (note.y > -50 && note.y < this.HEIGHT + 50) {
+            if (note.y > -50 && note.y < this.HEIGHT + 50 && !note.hit) {
                 const x = (note.lane + 0.5) * (this.WIDTH / 4);
                 const distance = Math.abs(note.y - this.HIT_ZONE_Y);
                 const inZone = distance <= this.HIT_TOLERANCE;
@@ -536,16 +546,36 @@ class RhythmGame {
                 const lightness = inZone ? 80 : 60;
                 const glow = Math.sin(note.glowPhase) * 0.3 + 0.7;
                 
+                // Enhanced glow effect for notes approaching hit zone
+                let glowSize = 15;
+                if (inZone) {
+                    glowSize = 25 + Math.sin(note.glowPhase * 2) * 10;
+                }
+                
                 // Optimized neon glow effect
                 if (this.settings.visualEffects && this.qualityMode !== 'low') {
-                    this.ctx.shadowBlur = inZone ? 25 * glow : 15;
+                    this.ctx.shadowBlur = glowSize * glow;
                     this.ctx.shadowColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
                 }
                 
                 this.ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
                 this.ctx.beginPath();
-                this.ctx.arc(x, note.y, inZone ? 25 : 20, 0, Math.PI * 2);
+                
+                // Larger notes when in hit zone
+                const noteSize = inZone ? 25 + Math.sin(note.glowPhase) * 5 : 20;
+                this.ctx.arc(x, note.y, noteSize, 0, Math.PI * 2);
                 this.ctx.fill();
+                
+                // Add note lane indicators
+                if (this.qualityMode === 'high') {
+                    this.ctx.shadowBlur = 5;
+                    this.ctx.strokeStyle = `hsla(${hue}, 50%, 50%, 0.5)`;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.HEIGHT);
+                    this.ctx.stroke();
+                }
                 
                 this.ctx.shadowBlur = 0;
             }
@@ -572,6 +602,41 @@ class RhythmGame {
             this.ctx.fillStyle = '#ffff00';
             this.ctx.font = '14px monospace';
             this.ctx.fillText(`FPS: ${this.fps} | Quality: ${this.qualityMode}`, 10, 20);
+        }
+        
+        // Debug: Show notes in hit zone
+        const notesInZone = this.notes.filter(note => 
+            !note.hit && 
+            note.y > this.HIT_ZONE_Y - this.HIT_TOLERANCE && 
+            note.y < this.HIT_ZONE_Y + this.HIT_TOLERANCE
+        ).length;
+        
+        if (notesInZone > 0) {
+            this.ctx.fillStyle = '#00ff00';
+            this.ctx.font = 'bold 20px monospace';
+            this.ctx.fillText(`HIT NOW! (${notesInZone} notes)`, 10, 60);
+        }
+        
+        // Combo visual feedback
+        if (this.combo >= 10) {
+            const comboGlow = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
+            this.ctx.fillStyle = `rgba(255, 255, 0, ${0.3 + comboGlow * 0.4})`;
+            this.ctx.font = 'bold 48px monospace';
+            this.ctx.textAlign = 'center';
+            
+            let comboText = '';
+            if (this.comboMultiplier === 4) comboText = '4X COMBO!';
+            else if (this.comboMultiplier === 3) comboText = '3X COMBO!';
+            else if (this.comboMultiplier === 2) comboText = '2X COMBO!';
+            
+            if (comboText) {
+                this.ctx.shadowBlur = 20;
+                this.ctx.shadowColor = '#ffff00';
+                this.ctx.fillText(comboText, this.WIDTH / 2, 100);
+                this.ctx.shadowBlur = 0;
+            }
+            
+            this.ctx.textAlign = 'start';
         }
     }
 

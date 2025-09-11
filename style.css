@@ -84,6 +84,21 @@ input[type="file"] {
     cursor: pointer;
 }
 
+select {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
 .score-display {
     display: flex;
     gap: 20px;
