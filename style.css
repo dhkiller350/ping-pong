@@ -1,25 +1,116 @@
 body {
-    background: #222;
+    background: linear-gradient(135deg, #0c0c0c, #1a1a2e, #16213e);
     color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: 'Courier New', monospace;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    overflow: hidden;
 }
 
 h1 {
     margin-top: 20px;
     margin-bottom: 10px;
-    font-size: 2rem;
-    letter-spacing: 2px;
+    font-size: 2.5rem;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+    animation: pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff; }
+    to { text-shadow: 0 0 30px #00ffff, 0 0 50px #00ffff, 0 0 70px #00ffff; }
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 canvas {
-    background: #333;
-    box-shadow: 0 0 24px #000;
-    border: 2px solid #fff;
-    margin-bottom: 20px;
+    background: linear-gradient(45deg, #0a0a0a, #1a1a2e);
+    box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.3),
+        inset 0 0 30px rgba(0, 255, 255, 0.1);
+    border: 2px solid #00ffff;
+    border-radius: 10px;
     display: block;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 255, 255, 0.1);
+    padding: 15px 25px;
+    border-radius: 25px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+button {
+    background: linear-gradient(135deg, #00ffff, #0080ff);
+    border: none;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+input[type="file"] {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+select {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.score-display {
+    display: flex;
+    gap: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+#score, #combo {
+    text-shadow: 0 0 10px #00ffff;
+}
+
+#combo {
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00;
 }

@@ -2,12 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pong Game</title>
+    <title>Enhanced Neon Rhythm Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Pong Game</h1>
-    <canvas id="pong" width="800" height="400"></canvas>
+    <h1>Enhanced Neon Rhythm Game</h1>
+    <div class="game-container">
+        <canvas id="rhythmCanvas" width="800" height="600"></canvas>
+        <div class="controls">
+            <input type="file" id="audioFile" accept=".mp3,.wav,.ogg,.m4a" multiple>
+            <button id="playBtn">Play</button>
+            <button id="pauseBtn">Pause</button>
+            <select id="backgroundMode">
+                <option value="spectrum">Spectrum</option>
+                <option value="waves">Waves</option>
+                <option value="particles">Particles</option>
+            </select>
+            <div class="score-display">
+                <span id="score">Score: 0</span>
+                <span id="combo">Combo: 0x</span>
+            </div>
+        </div>
+        <audio id="gameAudio" preload="none"></audio>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>
