@@ -344,47 +344,110 @@ class RhythmGame:
             return False
     
     def init_display(self) -> bool:
-        """Initialize display with fallback handling"""
+        """Initialize display with comprehensive fallback handling"""
         try:
             # Get display settings
             width, height = self.settings.settings["resolution"]
             fullscreen = self.settings.settings["fullscreen"]
             
-            # Set display mode with error handling
+            # Log display initialization attempt
+            logger.info(f"Attempting display initialization: {width}x{height}, fullscreen={fullscreen}")
+            
+            # Set display mode with progressive fallback handling
             if fullscreen:
                 try:
                     # Try fullscreen mode first
                     self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
-                    logger.info(f"Fullscreen mode initialized: {width}x{height}")
+                    logger.info(f"Fullscreen mode initialized successfully: {width}x{height}")
                 except pygame.error as e:
-                    logger.warning(f"Fullscreen mode failed: {e}, falling back to windowed")
-                    # Fallback to windowed mode
-                    self.screen = pygame.display.set_mode((width, height))
+                    logger.warning(f"Fullscreen mode failed ({e}), trying fullscreen with different resolution")
+                    
+                    # Try fullscreen with native resolution
+                    try:
+                        info = pygame.display.Info()
+                        native_width, native_height = info.current_w, info.current_h
+                        self.screen = pygame.display.set_mode((native_width, native_height), pygame.FULLSCREEN)
+                        logger.info(f"Fullscreen with native resolution: {native_width}x{native_height}")
+                        
+                        # Update settings to reflect actual resolution
+                        self.settings.settings["resolution"] = [native_width, native_height]
+                        
+                    except pygame.error as e2:
+                        logger.warning(f"Native fullscreen failed ({e2}), falling back to windowed")
+                        # Fallback to windowed mode
+                        self.screen = pygame.display.set_mode((width, height))
+                        self.settings.settings["fullscreen"] = False
+                        logger.info(f"Windowed mode fallback: {width}x{height}")
             else:
-                self.screen = pygame.display.set_mode((width, height))
-                logger.info(f"Windowed mode initialized: {width}x{height}")
+                try:
+                    self.screen = pygame.display.set_mode((width, height))
+                    logger.info(f"Windowed mode initialized: {width}x{height}")
+                except pygame.error as e:
+                    logger.warning(f"Requested resolution failed ({e}), trying safe resolution")
+                    
+                    # Try safe resolutions in order of preference
+                    safe_resolutions = [(1024, 768), (800, 600), (640, 480)]
+                    display_initialized = False
+                    
+                    for safe_width, safe_height in safe_resolutions:
+                        try:
+                            self.screen = pygame.display.set_mode((safe_width, safe_height))
+                            logger.info(f"Safe resolution initialized: {safe_width}x{safe_height}")
+                            
+                            # Update settings to reflect actual resolution
+                            self.settings.settings["resolution"] = [safe_width, safe_height]
+                            display_initialized = True
+                            break
+                        except pygame.error:
+                            continue
+                    
+                    if not display_initialized:
+                        raise pygame.error("All display initialization attempts failed")
             
-            pygame.display.set_caption("Enhanced Neon Rhythm Game")
+            # Set window properties
+            pygame.display.set_caption("Enhanced Neon Rhythm Game - High Performance Edition")
             
-            # Initialize background renderer
-            self.background_renderer = BackgroundRenderer(width, height)
+            # Initialize background renderer with actual screen dimensions
+            screen_width, screen_height = self.screen.get_size()
+            self.background_renderer = BackgroundRenderer(screen_width, screen_height)
+            
+            # Log successful initialization
+            actual_width, actual_height = self.screen.get_size()
+            logger.info(f"Display successfully initialized: {actual_width}x{actual_height}")
             
             return True
             
         except pygame.error as e:
-            logger.error(f"Display initialization failed: {e}")
-            # Try with default resolution as last resort
+            logger.error(f"Display initialization failed with pygame error: {e}")
+            
+            # Last resort: try minimal display mode
             try:
-                self.screen = pygame.display.set_mode((800, 600))
-                self.background_renderer = BackgroundRenderer(800, 600)
-                logger.info("Fallback display mode (800x600) initialized")
+                logger.info("Attempting minimal display mode as last resort")
+                self.screen = pygame.display.set_mode((640, 480))
+                self.background_renderer = BackgroundRenderer(640, 480)
+                self.settings.settings["resolution"] = [640, 480]
+                self.settings.settings["fullscreen"] = False
+                logger.warning("Minimal display mode (640x480) initialized as fallback")
                 return True
             except Exception as fallback_e:
                 logger.error(f"All display initialization attempts failed: {fallback_e}")
                 return False
+                
         except Exception as e:
-            logger.error(f"Unexpected display error: {e}")
-            return False
+            logger.error(f"Unexpected display initialization error: {e}")
+            
+            # Final fallback attempt
+            try:
+                import os
+                # Set SDL video driver to software rendering
+                os.environ['SDL_VIDEODRIVER'] = 'software'
+                self.screen = pygame.display.set_mode((800, 600))
+                self.background_renderer = BackgroundRenderer(800, 600)
+                logger.warning("Software rendering fallback initialized")
+                return True
+            except Exception:
+                logger.error("All display fallback attempts exhausted")
+                return False
     
     def spawn_note(self):
         """Spawn a new note"""
@@ -1296,9 +1359,21 @@ class ConfigManager:
         """Load configuration from file with validation"""
         try:
             if os.path.exists(self.config_file):
-                pass  # Placeholder
-        except:
+                with open(self.config_file, 'r') as f:
+                    loaded_config = json.load(f)
                 
+                # Merge with defaults and validate
+                config = self.merge_configs(self.default_config, loaded_config)
+                return self.validate_config(config)
+            else:
+                logger.info("Config file not found, using defaults")
+                return self.default_config.copy()
+        except (FileNotFoundError, PermissionError) as e:
+            logger.warning(f"Config file access error: {e}")
+            return self.default_config.copy()
+        except json.JSONDecodeError as e:
+            logger.error(f"Config file format error: {e}")
+            return self.default_config.copy()
         except Exception as e:
             logger.error(f"Failed to load config: {e}")
             return self.default_config.copy()

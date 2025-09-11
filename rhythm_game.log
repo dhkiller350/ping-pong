@@ -1,0 +1,9 @@
+2025-09-11 04:57:21,968 - INFO - Enhanced Neon Rhythm Game starting...
+2025-09-11 04:57:22,231 - ERROR - All audio initialization attempts failed: Audio target 'winmm' not available
+2025-09-11 04:57:22,241 - ERROR - System requirements not met: ['audio_available']
+2025-09-11 04:57:54,827 - INFO - Performance adjusted to medium quality
+2025-09-11 04:57:54,829 - INFO - Safe cleanup completed
+2025-09-11 04:58:12,290 - INFO - Performance adjusted to medium quality
+2025-09-11 04:58:12,291 - INFO - Config file not found, using defaults
+2025-09-11 04:58:12,292 - ERROR - Config validation error: 'audio'
+2025-09-11 04:58:12,292 - INFO - Safe cleanup completed
