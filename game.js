@@ -597,27 +597,14 @@ class RhythmGame {
     }
 
     renderUI() {
-        // Performance indicator (FPS)
+        // Performance indicator (FPS) - only show when quality is reduced
         if (this.qualityMode !== 'high') {
             this.ctx.fillStyle = '#ffff00';
             this.ctx.font = '14px monospace';
             this.ctx.fillText(`FPS: ${this.fps} | Quality: ${this.qualityMode}`, 10, 20);
         }
         
-        // Debug: Show notes in hit zone
-        const notesInZone = this.notes.filter(note => 
-            !note.hit && 
-            note.y > this.HIT_ZONE_Y - this.HIT_TOLERANCE && 
-            note.y < this.HIT_ZONE_Y + this.HIT_TOLERANCE
-        ).length;
-        
-        if (notesInZone > 0) {
-            this.ctx.fillStyle = '#00ff00';
-            this.ctx.font = 'bold 20px monospace';
-            this.ctx.fillText(`HIT NOW! (${notesInZone} notes)`, 10, 60);
-        }
-        
-        // Combo visual feedback
+        // Combo visual feedback with glowing text
         if (this.combo >= 10) {
             const comboGlow = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
             this.ctx.fillStyle = `rgba(255, 255, 0, ${0.3 + comboGlow * 0.4})`;
